@@ -1,0 +1,15 @@
+# === BACKEND ===
+Backend/bin/
+Backend/obj/
+*.user
+*.suo
+
+# === FRONTEND ===
+Frontend/node_modules/
+Frontend/dist/
+Frontend/.vscode/
+Frontend/.env
+
+# === GENERAL ===
+.DS_Store
+.env

@@ -1,0 +1,44 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  background: #f5f5f5;
+}
+
+h1 {
+  color: #333;
+}
+
+.add-todo input {
+  margin-right: 5px;
+}
+
+.add-todo button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.add-todo button:hover {
+  background-color: #45a049;
+}
+
+ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+li {
+  background: white;
+  margin-bottom: 5px;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.progress-bar {
+  display: inline-block;
+  background-color: #4caf50;
+  height: 10px;
+  border-radius: 5px;
+}

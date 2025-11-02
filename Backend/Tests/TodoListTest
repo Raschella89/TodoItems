@@ -1,0 +1,86 @@
+using System;
+using Xunit;
+using TodoApp.Application.Services;
+using TodoApp.Infrastructure.Repositories;
+using TodoApp.Domain.Entities;
+using System.Linq;
+
+namespace TodoApp.Tests;
+
+public class TodoListTests
+{
+    private TodoListService CreateService(out InMemoryTodoListRepository repo)
+    {
+        repo = new InMemoryTodoListRepository();
+        return new TodoListService(repo);
+    }
+
+    [Fact]
+    public void HappyPath_ExampleGiven_WorksAndPrints()
+    {
+        var service = CreateService(out var repo);
+        var id = repo.GetNextId();
+        service.AddItem(id, "Complete Project Report", "Finish the final report for the project", "Work");
+
+        service.RegisterProgression(id, new DateTime(2025, 3, 18), 30);
+        service.RegisterProgression(id, new DateTime(2025, 3, 19), 50);
+        service.RegisterProgression(id, new DateTime(2025, 3, 20), 20);
+
+        var items = service.GetAllItems().ToList();
+        Assert.Single(items);
+        var item = items[0];
+        Assert.Equal(100, item.CumulativePercent);
+        Assert.True(item.IsCompleted);
+        Assert.Equal(3, item.Progressions.Count);
+    }
+
+    [Fact]
+    public void InvalidPercent_Throws()
+    {
+        var service = CreateService(out var repo);
+        var id = repo.GetNextId();
+        service.AddItem(id, "t", "", "Work");
+
+        Assert.Throws<InvalidOperationException>(() =>
+            service.RegisterProgression(id, DateTime.UtcNow, 0));
+        Assert.Throws<InvalidOperationException>(() =>
+            service.RegisterProgression(id, DateTime.UtcNow, 100));
+    }
+
+    [Fact]
+    public void DateOrder_Invalid_Throws()
+    {
+        var service = CreateService(out var repo);
+        var id = repo.GetNextId();
+        service.AddItem(id, "t", "", "Work");
+
+        service.RegisterProgression(id, new DateTime(2025, 1, 2), 10);
+        Assert.Throws<InvalidOperationException>(() =>
+            service.RegisterProgression(id, new DateTime(2025, 1, 2), 10)); // same date
+        Assert.Throws<InvalidOperationException>(() =>
+            service.RegisterProgression(id, new DateTime(2024, 12, 31), 10)); // earlier date
+    }
+
+    [Fact]
+    public void CannotUpdateOrRemove_WhenOver50Percent()
+    {
+        var service = CreateService(out var repo);
+        var id = repo.GetNextId();
+        service.AddItem(id, "t", "", "Work");
+
+        service.RegisterProgression(id, DateTime.UtcNow, 51);
+        Assert.Throws<InvalidOperationException>(() => service.UpdateItem(id, "new"));
+        Assert.Throws<InvalidOperationException>(() => service.RemoveItem(id));
+    }
+
+    [Fact]
+    public void CannotExceed100Total()
+    {
+        var service = CreateService(out var repo);
+        var id = repo.GetNextId();
+        service.AddItem(id, "t", "", "Work");
+
+        service.RegisterProgression(id, DateTime.UtcNow, 60);
+        Assert.Throws<InvalidOperationException>(() => service.RegisterProgression(id, DateTime.UtcNow.AddDays(1), 50));
+    }
+}
