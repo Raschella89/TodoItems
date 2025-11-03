@@ -1,6 +1,5 @@
-import { createApp } from "vue";
-import App from "./App.vue";
+import { createApp } from 'vue';
+import TodoList from './components/TodoList.vue';
+import './assets/styles.css';
 
-import "./assets/styles.css"; // optional, for global styles
-
-createApp(App).mount("#app");
+createApp(TodoList).mount('#app');

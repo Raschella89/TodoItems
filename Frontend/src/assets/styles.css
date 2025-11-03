@@ -8,7 +8,8 @@ h1 {
   color: #333;
 }
 
-.add-todo input {
+.add-todo input,
+.add-todo select {
   margin-right: 5px;
 }
 
@@ -37,8 +38,20 @@ li {
 }
 
 .progress-bar {
-  display: inline-block;
-  background-color: #4caf50;
+  width: 100%;
+  background: #eee;
   height: 10px;
-  border-radius: 5px;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 2px;
+}
+
+.progress-fill {
+  height: 10px;
+  background: #4caf50;
+}
+
+.progress-text {
+  font-family: monospace;
+  margin: 0;
 }

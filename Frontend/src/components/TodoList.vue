@@ -1,105 +1,52 @@
 <template>
-  <div>
+  <div class="todo-app">
     <h1>Todo List</h1>
+
+    <!-- Add Todo -->
     <div class="add-todo">
-      <input v-model="newTitle" placeholder="Title" />
-      <input v-model="newDescription" placeholder="Description" />
-      <input v-model="newCategory" placeholder="Category" />
-      <button @click="addTodo">Add</button>
+      <input v-model="state.newTitle" placeholder="Title" />
+      <input v-model="state.newDescription" placeholder="Description" />
+      <select v-model="state.newCategory">
+        <option value="Work">Work</option>
+        <option value="Personal">Personal</option>
+        <option value="Hobby">Hobby</option>
+      </select>
+      <button @click="onAddTodo">Add</button>
     </div>
 
+    <!-- Todos -->
     <ul>
-      <li v-for="todo in todos" :key="todo.id">
+      <li v-for="todo in state.todos" :key="todo.id">
         {{ todo.id }}) {{ todo.title }} - {{ todo.description }} ({{ todo.category }}) Completed: {{ todo.isCompleted }}
-        <ul>
-          <li v-for="p in todo.progressions" :key="p.date">
-            {{ p.date }} - {{ p.percent }}% |{{ 'O'.repeat(Math.round(p.percent / 2)).padEnd(50) }}|
-          </li>
-        </ul>
-        <button @click="removeTodo(todo.id)">Remove</button>
+
+        <button @click="onRemove(todo.id)">Remove</button>
+
+        <div class="progress-section">
+          <ul v-if="todo.progressions.length">
+            <li v-for="(p, index) in todo.progressions" :key="p.date">
+              {{ formatDate(p.date) }} - {{ cumulativePercent(todo, index) }}%
+              <div class="progress-bar">
+                <div class="progress-fill" :style="{ width: cumulativePercent(todo, index) + '%' }"></div>
+              </div>
+              <pre class="progress-text">{{ progressBar(todo, index) }}</pre>
+            </li>
+          </ul>
+          <span v-else>No progress yet</span>
+
+          <div class="add-progress">
+            <input type="number" v-model.number="todo.newPercent" placeholder="Progress %" min="1" max="100" />
+            <button @click="onAddProgress(todo)">Add Progress</button>
+          </div>
+        </div>
       </li>
     </ul>
   </div>
 </template>
 
-<script lang="ts">
-import { ref, onMounted } from 'vue';
+<script lang="ts" setup>
+import { useTodoListLogic, formatDate } from './TodoList';
 
-interface Progression {
-  date: string;
-  percent: number;
-}
-
-interface Todo {
-  id: number;
-  title: string;
-  description: string;
-  category: string;
-  isCompleted: boolean;
-  progressions: Progression[];
-}
-
-const API_URL = 'http://localhost:5101/api/todolist';
-
-export default {
-  setup() {
-    const todos = ref<Todo[]>([]);
-    const newTitle = ref('');
-    const newDescription = ref('');
-    const newCategory = ref('');
-
-    const loadTodos = async () => {
-      try {
-        const res = await fetch(API_URL);
-        todos.value = await res.json();
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    const addTodo = async () => {
-      try {
-        await fetch(API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title: newTitle.value,
-            description: newDescription.value,
-            category: newCategory.value
-          })
-        });
-        newTitle.value = '';
-        newDescription.value = '';
-        newCategory.value = '';
-        await loadTodos();
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    const removeTodo = async (id: number) => {
-      try {
-        await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-        await loadTodos();
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    onMounted(() => {
-      loadTodos();
-    });
-
-    return { todos, newTitle, newDescription, newCategory, addTodo, removeTodo };
-  }
-};
+const { state, onAddTodo, onRemove, onAddProgress, cumulativePercent, progressBar } = useTodoListLogic();
 </script>
 
-<style>
-.add-todo input {
-  margin-right: 8px;
-}
-button {
-  margin-left: 4px;
-}
-</style>
+<style src="../assets/styles.css"></style>

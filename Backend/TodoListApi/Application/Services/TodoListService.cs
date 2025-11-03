@@ -9,7 +9,6 @@ namespace TodoApp.Application.Services;
 public class TodoListService : ITodoList
 {
     private readonly ITodoListRepository _repo;
-
     private readonly List<TodoItem> _items = new();
 
     public TodoListService(ITodoListRepository repo)
@@ -19,9 +18,14 @@ public class TodoListService : ITodoList
 
     public void AddItem(int id, string title, string description, string category)
     {
-        if (!_repo.GetAllCategories().Contains(category))
+        // Validate category against repository
+        var cats = _repo.GetAllCategories() ?? new List<string>();
+        if (!cats.Contains(category))
             throw new InvalidOperationException("Invalid category.");
-        if (_items.Any(i => i.Id == id)) throw new InvalidOperationException("Id already exists.");
+
+        if (_items.Any(i => i.Id == id))
+            throw new InvalidOperationException("Id already exists.");
+
         var item = new TodoItem(id, title, description, category);
         _items.Add(item);
     }
@@ -55,11 +59,11 @@ public class TodoListService : ITodoList
         foreach (var i in _items.OrderBy(x => x.Id))
         {
             Console.WriteLine($"{i.Id}) {i.Title} - {i.Description} ({i.Category}) Completed:{i.IsCompleted}");
-            decimal acc = 0;
+            decimal acc = 0m;
             foreach (var p in i.Progressions)
             {
                 acc += p.Percent;
-                int bars = (int)Math.Round(acc / 2); 
+                int bars = (int)Math.Round(acc / 2m); // 50 characters => each char ~=2%
                 var bar = new string('O', bars).PadRight(50);
                 Console.WriteLine($"{p.Date} - {acc}%     |{bar}|");
             }

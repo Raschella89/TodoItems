@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Linq;
 using TodoApp.Application.Services;
+using TodoApp.Domain.Interfaces;
 
 namespace TodoApp.WebApi.Controllers;
 
@@ -10,9 +11,9 @@ namespace TodoApp.WebApi.Controllers;
 public class TodoController : ControllerBase
 {
     private readonly TodoListService _service;
-    private readonly Domain.Interfaces.ITodoListRepository _repo;
+    private readonly ITodoListRepository _repo;
 
-    public TodoController(TodoListService service, Domain.Interfaces.ITodoListRepository repo)
+    public TodoController(TodoListService service, ITodoListRepository repo)
     {
         _service = service;
         _repo = repo;
@@ -59,7 +60,6 @@ public class TodoController : ControllerBase
     [HttpPost("{id:int}/progress")]
     public IActionResult AddProgression(int id, [FromBody] AddProgressDto dto)
     {
-        // Use server time only if dto.Date is not provided; here allow optional date
         var when = dto.Date ?? DateTime.UtcNow;
         _service.RegisterProgression(id, when, dto.Percent);
         return Accepted();
